@@ -1,6 +1,6 @@
     <?php
 
-      $url = "https://api.disneyapi.dev/character?pageSize=197";
+      $url = "https://api.disneyapi.dev/character?pageSize=100";
 
 
       $context = stream_context_create(['http' => ['timeout' => 10]]);
@@ -27,6 +27,9 @@
       <div class = "header">
         <img src ='Imagens/walt_disney_PNG38.png'>
         <h1>A magia vive em cada personagem</h1>
+         <div class="pesquisa">
+    <input type="text"  id="pesquisa" name="pesquisa" placeholder="Pesquisar..." onkeyup="pesquisar()">
+  </div>
       </div>
 
       <div class = "container">
@@ -47,3 +50,20 @@
 Para usar o Disney+, é necessário ser assinante e ter mais de 18 anos de idade. Conteúdo sujeito a disponibilidade.</p>
   </footer>
       </html>
+
+      <script>
+        function pesquisar(){
+        const texto = document.getElementById("pesquisa").value.toLowerCase();
+        const cards = document.querySelectorAll(".container-single");
+
+     cards.forEach(card=>{
+        const nome = card.querySelector("h2").innerText.toLowerCase();
+
+     if (nome.includes(texto)){
+        card.style.display = "block";
+    } else {
+          card.style.display = "none";
+          }
+    });
+  }
+  </script>
