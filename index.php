@@ -1,6 +1,6 @@
     <?php
 
-      $url = "https://api.disneyapi.dev/character?pageSize=100";
+      $url = "https://api.disneyapi.dev/character?pageSize=1000";
 
 
       $context = stream_context_create(['http' => ['timeout' => 10]]);
@@ -36,7 +36,11 @@
         
           <?php foreach ($personagens as $personagem) { ?>
           <div class = "container-single" >
+            <?php if( !empty($personagem['imageUrl'])) { ?>
             <img src="<?=$personagem['imageUrl'] ?>" alt ="";"><br><br>
+            <?php } else { ?>
+            <img src="https://static.wikia.nocookie.net/disney/images/0/0e/Old-yeller-2-movie-collection-20060206040952451-000.jpg" alt ="";"><br><br>
+            <?php } ?>
               <h2><?php echo $personagem['name'] . "<br>";?></h2>
               <h3><?php echo implode(", ", $personagem['films']) . "<br><br>";?></h2>
           </div> <?php } ?>
