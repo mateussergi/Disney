@@ -1,18 +1,23 @@
     <?php
+  $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+  $pageSize = 52;
+  $pesquisa = $_GET['search'] ?? '';
 
-      $url = "https://api.disneyapi.dev/character?pageSize=1000";
+  $url = "https://api.disneyapi.dev/character?page={$page}&pageSize={$pageSize}";
+  if(!empty($pesquisa)) { $url .= "&name=" . urlencode($pesquisa); }
 
+  $response = @file_get_contents($url);
+  $data = $response ? json_decode($response, true) : null;
 
-      $context = stream_context_create(['http' => ['timeout' => 10]]);
-      $response = @file_get_contents($url, false, $context);
+  $personagens = $data['data'] ?? [];
+  
+  if (isset($personagens['_id'])) { $personagens = [$personagens]; }
 
-      $data = $response ? json_decode($response, true) : null;
+  $totalPages = $data['info']['totalPages'] ?? 1;
+?>
 
-      $personagens = $data['data'] ?? [];
-     ?>
-
-      <!DOCTYPE html>
-        <html lang="en">
+  <!DOCTYPE html>
+  <html lang="en">
         <head>
           <meta charset="UTF-8">
           <link rel="stylesheet" href="style.css"/>
@@ -22,15 +27,18 @@
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
           <title>Disney</title>
+          <link href="css/style.css?v=<?php echo rand();?>" type="text/css" rel="stylesheet">
         </head>
-  <body>
-      <div class = "header">
-        <img src ='Imagens/walt_disney_PNG38.png'>
-        <h1>A magia vive em cada personagem</h1>
-         <div class="pesquisa">
-    <input type="text"  id="pesquisa" name="pesquisa" placeholder="Pesquisar..." onkeyup="pesquisar()">
-  </div>
-      </div>
+    <body>
+        <div class = "header">
+            <img src ='Imagens/walt_disney_PNG38.png'>
+            <h1>A magia vive em cada personagem</h1>
+          <div class = "pesquisa">
+            <form method="GET">
+              <input type="text" name="search" placeholder="Pesquisar" value="<?php echo $pesquisa ?? ''; ?>">
+            </form>
+          </div>  
+        </div>
 
       <div class = "container">
         
@@ -42,32 +50,46 @@
             <img src="https://static.wikia.nocookie.net/disney/images/0/0e/Old-yeller-2-movie-collection-20060206040952451-000.jpg" alt ="";"><br><br>
             <?php } ?>
               <h2><?php echo $personagem['name'] . "<br>";?></h2>
-              <h3><?php echo implode(", ", $personagem['films']) . "<br><br>";?></h2>
+              <?php if( !empty($personagem['films'])) { ?>
+              <h3><?php echo "<br> Filmes: " . implode(", ", $personagem['films']) . "<br>";?></h3>
+              <?php }?>
+              <?php if( !empty($personagem['tvShows'])) { ?>
+              <h3><?php echo "Séries: " . implode(", ", $personagem['tvShows']) . "<br>";?></h3>
+              <?php } ?>
+              <?php if( !empty($personagem['shortFilms'])) { ?>
+              <h3><?php echo "Curtas: " . implode(", ", $personagem['shortFilms']) . "<br>";?></h3>
+              <?php }?>
+              <?php if( !empty($personagem['videoGames'])) { ?>
+              <h3><?php echo "Video Games: " . implode(", ", $personagem['videoGames']) . "<br><br><br>";?></h3>
+              <?php }?>
+              <h3><?php echo "<br><br><br>"?></h3>
           </div> <?php } ?>
           </div>
-          ?>
+
         
       </div>
-  </body>
-  <footer class = footer>
-      <p>© 2026 Disney e suas empresas afiliadas. Todos os direitos reservados.
-Para usar o Disney+, é necessário ser assinante e ter mais de 18 anos de idade. Conteúdo sujeito a disponibilidade.</p>
-  </footer>
-      </html>
 
-      <script>
-        function pesquisar(){
-        const texto = document.getElementById("pesquisa").value.toLowerCase();
-        const cards = document.querySelectorAll(".container-single");
+          <?php
+          $inicio = max(1,$page -1);
+          $final = min($totalPages, $page +1);
+          ?>
+          <ul class="pagination">
+              <?php if($page > 1) : ?>
+                  <li><a href="?page=<?=$page - 1?>&search=<?=urlencode($pesquisa)?>"><</a></li>
+              <?php endif;?>
 
-     cards.forEach(card=>{
-        const nome = card.querySelector("h2").innerText.toLowerCase();
+              <?php for($i=$inicio;$i<=$final;$i++): ?>
+                  <li><a href="?page=<?=$i?>&search=<?=urlencode($pesquisa)?>" class="<?=($i==$page) ? 'active' : ''?>"><?=$i?></a></li>
+              <?php endfor; ?>
 
-     if (nome.includes(texto)){
-        card.style.display = "block";
-    } else {
-          card.style.display = "none";
-          }
-    });
-  }
-  </script>
+              <?php if($page < $totalPages): ?>
+                  <li><a href="?page=<?=$page + 1?>&search=<?=urlencode($pesquisa)?>">></a></li>
+              <?php endif; ?>
+          </ul>
+
+    </body>
+      <footer class = footer>
+          <p>© 2026 Disney e suas empresas afiliadas. Todos os direitos reservados.
+          Para usar o Disney+, é necessário ser assinante e ter mais de 18 anos de idade. Conteúdo sujeito a disponibilidade.</p>
+      </footer>
+  </html>
